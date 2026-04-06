@@ -80,7 +80,16 @@ for _key, _mod in _st_conflict_backup.items():
 del _st_conflict_backup
 
 DEFAULT_LAYERDIFF_REPO = "layerdifforg/seethroughv0.0.2_layerdiff3d"
+DEFAULT_LAYERDIFF_NF4_REPO = "24yearsold/seethroughv0.0.2_layerdiff3d_nf4"
 DEFAULT_DEPTH_REPO = "24yearsold/seethroughv0.0.1_marigold"
+DEFAULT_DEPTH_NF4_REPO = "24yearsold/seethroughv0.0.1_marigold_nf4"
+
+QUANT_MODES = ["none", "nf4"]
+
+_NF4_REPO_MAP = {
+    DEFAULT_LAYERDIFF_REPO: DEFAULT_LAYERDIFF_NF4_REPO,
+    DEFAULT_DEPTH_REPO: DEFAULT_DEPTH_NF4_REPO,
+}
 
 VALID_BODY_PARTS_V2 = [
     "hair", "headwear", "face", "eyes", "eyewear", "ears", "earwear",
@@ -111,6 +120,24 @@ class SeeThrough_LayersDepthData:
         self.depth_dict = depth_dict      # tag -> float32 depth [0,1]
         self.fullpage = fullpage
         self.resolution = resolution
+
+
+def _cast_non_quantized_params(model, dtype):
+    """Cast non-quantized float parameters to dtype, leaving bitsandbytes 4-bit params and integer tensors untouched."""
+    try:
+        import bitsandbytes as bnb
+        bnb_types = (bnb.nn.Linear4bit, bnb.nn.Linear8bitLt)
+    except ImportError:
+        bnb_types = ()
+    for module in model.modules():
+        if bnb_types and isinstance(module, bnb_types):
+            continue
+        for param in module.parameters(recurse=False):
+            if param.data.is_floating_point():
+                param.data = param.data.to(dtype=dtype)
+        for buf in module.buffers(recurse=False):
+            if buf.data.is_floating_point():
+                buf.data = buf.data.to(dtype=dtype)
 
 
 def seed_everything(seed):
@@ -242,7 +269,7 @@ class SeeThrough_LoadLayerDiffModel:
     @classmethod
     def INPUT_TYPES(s):
         local_models = _scan_model_dirs()
-        model_list = local_models + [DEFAULT_LAYERDIFF_REPO]
+        model_list = local_models + [DEFAULT_LAYERDIFF_REPO, DEFAULT_LAYERDIFF_NF4_REPO]
         return {
             "required": {
                 "model": (model_list, {"default": DEFAULT_LAYERDIFF_REPO,
@@ -253,6 +280,8 @@ class SeeThrough_LoadLayerDiffModel:
                                         "tooltip": "Optional path to a custom VAE checkpoint (.safetensors)"}),
                 "unet_ckpt": ("STRING", {"default": "",
                                          "tooltip": "Optional path to a custom UNet checkpoint"}),
+                "quant_mode": (QUANT_MODES, {"default": "none",
+                                              "tooltip": "Quantization mode: 'none' for bf16, 'nf4' for 4-bit NormalFloat quantization (~8GB VRAM). Requires bitsandbytes."}),
                 "cache_tag_embeds": ("BOOLEAN", {"default": True,
                                                   "tooltip": "Pre-compute and cache tag embeddings, then unload text encoders to save VRAM"}),
                 "group_offload": ("BOOLEAN", {"default": False,
@@ -265,11 +294,17 @@ class SeeThrough_LoadLayerDiffModel:
     FUNCTION = "load_model"
     CATEGORY = "SeeThrough"
 
-    def load_model(self, model, vae_ckpt="", unet_ckpt="", cache_tag_embeds=True, group_offload=False):
+    def load_model(self, model, vae_ckpt="", unet_ckpt="", quant_mode="none", cache_tag_embeds=True, group_offload=False):
+        use_nf4 = quant_mode == "nf4"
         dtype = torch.bfloat16
+
+        if use_nf4 and model in _NF4_REPO_MAP:
+            model = _NF4_REPO_MAP[model]
+            print(f"[SeeThrough] quant_mode=nf4: auto-switched to NF4 repo {model}", flush=True)
+
         pretrained = _resolve_model_path(model)
 
-        print(f"[SeeThrough] Loading LayerDiff model from: {pretrained}", flush=True)
+        print(f"[SeeThrough] Loading LayerDiff model from: {pretrained} (quant_mode={quant_mode})", flush=True)
         trans_vae = TransparentVAE.from_pretrained(pretrained, subfolder="trans_vae")
 
         if unet_ckpt:
@@ -297,9 +332,16 @@ class SeeThrough_LoadLayerDiffModel:
 
         pipeline.vae.to(dtype=dtype)
         pipeline.trans_vae.to(dtype=dtype)
-        pipeline.unet.to(dtype=dtype)
-        pipeline.text_encoder.to(dtype=dtype)
-        pipeline.text_encoder_2.to(dtype=dtype)
+
+        if use_nf4:
+            print("[SeeThrough] NF4 mode: casting non-quantized parameters to bf16", flush=True)
+            _cast_non_quantized_params(pipeline.unet, dtype)
+            _cast_non_quantized_params(pipeline.text_encoder, dtype)
+            _cast_non_quantized_params(pipeline.text_encoder_2, dtype)
+        else:
+            pipeline.unet.to(dtype=dtype)
+            pipeline.text_encoder.to(dtype=dtype)
+            pipeline.text_encoder_2.to(dtype=dtype)
 
         pipeline._st_group_offload = False
         if group_offload:
@@ -313,27 +355,30 @@ class SeeThrough_LoadLayerDiffModel:
         if cache_tag_embeds:
             if not pipeline._st_group_offload:
                 device = mm.get_torch_device()
-                pipeline.text_encoder.to(device)
-                pipeline.text_encoder_2.to(device)
+                if not use_nf4:
+                    pipeline.text_encoder.to(device)
+                    pipeline.text_encoder_2.to(device)
             print("[SeeThrough] Caching tag embeddings and unloading text encoders...", flush=True)
             pipeline.cache_tag_embeds(unload_textencoders=True)
             _log_vram("After cache_tag_embeds (text encoders unloaded)")
 
         _log_vram("LayerDiff model loaded (CPU)")
-        print("[SeeThrough] LayerDiff model loaded to CPU (will move to GPU on demand)", flush=True)
+        print(f"[SeeThrough] LayerDiff model loaded (quant_mode={quant_mode})", flush=True)
         return (pipeline,)
 
 class SeeThrough_LoadDepthModel:
     @classmethod
     def INPUT_TYPES(s):
         local_models = _scan_model_dirs()
-        model_list = local_models + [DEFAULT_DEPTH_REPO]
+        model_list = local_models + [DEFAULT_DEPTH_REPO, DEFAULT_DEPTH_NF4_REPO]
         return {
             "required": {
                 "model": (model_list, {"default": DEFAULT_DEPTH_REPO,
                                        "tooltip": "HuggingFace repo ID or local model folder in models/SeeThrough/"}),
             },
             "optional": {
+                "quant_mode": (QUANT_MODES, {"default": "none",
+                                              "tooltip": "Quantization mode: 'none' for bf16, 'nf4' for 4-bit NormalFloat quantization. Requires bitsandbytes."}),
                 "cache_tag_embeds": ("BOOLEAN", {"default": True,
                                                   "tooltip": "Pre-compute empty text embedding and unload text encoder to save VRAM"}),
                 "group_offload": ("BOOLEAN", {"default": False,
@@ -346,14 +391,27 @@ class SeeThrough_LoadDepthModel:
     FUNCTION = "load_model"
     CATEGORY = "SeeThrough"
 
-    def load_model(self, model, cache_tag_embeds=True, group_offload=False):
+    def load_model(self, model, quant_mode="none", cache_tag_embeds=True, group_offload=False):
+        use_nf4 = quant_mode == "nf4"
         dtype = torch.bfloat16
+
+        if use_nf4 and model in _NF4_REPO_MAP:
+            model = _NF4_REPO_MAP[model]
+            print(f"[SeeThrough] quant_mode=nf4: auto-switched to NF4 repo {model}", flush=True)
+
         pretrained = _resolve_model_path(model)
 
-        print(f"[SeeThrough] Loading Marigold depth model from: {pretrained}", flush=True)
+        print(f"[SeeThrough] Loading Marigold depth model from: {pretrained} (quant_mode={quant_mode})", flush=True)
         unet = UNetFrameConditionModel.from_pretrained(pretrained, subfolder="unet")
         pipeline = MarigoldDepthPipeline.from_pretrained(pretrained, unet=unet)
-        pipeline.to(dtype=dtype)
+
+        if use_nf4:
+            print("[SeeThrough] NF4 mode: casting non-quantized parameters to bf16", flush=True)
+            pipeline.vae.to(dtype=dtype)
+            _cast_non_quantized_params(pipeline.unet, dtype)
+            _cast_non_quantized_params(pipeline.text_encoder, dtype)
+        else:
+            pipeline.to(dtype=dtype)
 
         pipeline._st_group_offload = False
         if group_offload:
@@ -367,13 +425,14 @@ class SeeThrough_LoadDepthModel:
         if cache_tag_embeds:
             if not pipeline._st_group_offload:
                 device = mm.get_torch_device()
-                pipeline.text_encoder.to(device)
+                if not use_nf4:
+                    pipeline.text_encoder.to(device)
             print("[SeeThrough] Caching empty text embedding and unloading text encoder...", flush=True)
             pipeline.cache_tag_embeds(unload_textencoders=True)
             _log_vram("After Marigold cache_tag_embeds (text encoder unloaded)")
 
         _log_vram("Depth model loaded (CPU)")
-        print("[SeeThrough] Depth model loaded to CPU (will move to GPU on demand)", flush=True)
+        print(f"[SeeThrough] Depth model loaded (quant_mode={quant_mode})", flush=True)
         return (pipeline,)
 
 class SeeThrough_GenerateLayers:
