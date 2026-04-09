@@ -13,6 +13,7 @@ from diffusers.utils.outputs import BaseOutput
 from see_through_modules.layerdiffuse.vae import TransparentVAEDecoder, TransparentVAEEncoder, vae_encode
 from .layerdiff3d import UNetFrameConditionModel
 from see_through_utils.torch_utils import seed_everything, img2tensor, tensor2img
+import os, folder_paths
 
 @dataclass
 class LayerdiffPipelineOutput(BaseOutput):
@@ -121,6 +122,8 @@ class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLImg2ImgPipeline):
             scheduler_name = "DPMPP_2M_SDE"
             scheduler_config_name = "zero"
             scheduler_configs = schedulers[scheduler_name]
+            if os.path.exists(os.path.join(folder_paths.cache_dir, 'huggingface', model_id)):
+                model_id = os.path.join(folder_paths.cache_dir, 'huggingface', model_id)
             scheduler = scheduler_configs[scheduler_config_name][0].from_pretrained(
                     model_id,
                     subfolder="scheduler",
