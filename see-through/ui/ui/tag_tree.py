@@ -10,7 +10,7 @@ from .ui_config import pcfg
 from .proj import ProjSeg
 from . import shared
 from .misc import ndarray2pixmap
-from live2d.scrap_model import Drawable
+from see_through_live2d.scrap_model import Drawable
 
 
 TREECHR_FONTSIZE = 12

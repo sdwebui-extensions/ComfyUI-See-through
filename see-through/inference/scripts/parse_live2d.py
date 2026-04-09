@@ -11,10 +11,10 @@ import cv2
 import sys
 sys.path.append(osp.dirname(osp.dirname(osp.abspath(__file__))))
 
-from utils.io_utils import load_exec_list, pil_pad_square, pil_ensure_rgb, imglist2imgrid, find_all_files_with_name, dict2json, json2dict, load_image, save_tmp_img
-from live2d.scrap_model import Live2DScrapModel, compose_from_drawables, load_detected_character, init_drawable_visible_map, Drawable
-from utils.visualize import pil_draw_text, visualize_segs, VALID_FACE_GROUPS, FACE_LABEL2NAME, visualize_facedet_output, LEFT_EYEBROW, RIGHT_EYEBROW, show_factorization_on_image
-from utils.cv import mask2rle, rle2mask
+from see_through_utils.io_utils import load_exec_list, pil_pad_square, pil_ensure_rgb, imglist2imgrid, find_all_files_with_name, dict2json, json2dict, load_image, save_tmp_img
+from see_through_live2d.scrap_model import Live2DScrapModel, compose_from_drawables, load_detected_character, init_drawable_visible_map, Drawable
+from see_through_utils.visualize import pil_draw_text, visualize_segs, VALID_FACE_GROUPS, FACE_LABEL2NAME, visualize_facedet_output, LEFT_EYEBROW, RIGHT_EYEBROW, show_factorization_on_image
+from see_through_utils.cv import mask2rle, rle2mask
 
 exclude_cls = \
 {
@@ -399,9 +399,9 @@ def assign_tag_by_path(lmodel: Live2DScrapModel):
 @click.option('--rank_to_worldsize', default='', type=str)
 def label_l2d_wsamsegs(exec_list, save_dir, extr_more, rank_to_worldsize):
 
-    from live2d.scrap_model import Drawable, VALID_BODY_PARTS_V2
-    from utils.cv import fgbg_hist_matching, quantize_image, random_crop, rle2mask, mask2rle, img_alpha_blending, resize_short_side_to, batch_save_masks, batch_load_masks
-    from utils.torch_utils import seed_everything
+    from see_through_live2d.scrap_model import Drawable, VALID_BODY_PARTS_V2
+    from see_through_utils.cv import fgbg_hist_matching, quantize_image, random_crop, rle2mask, mask2rle, img_alpha_blending, resize_short_side_to, batch_save_masks, batch_load_masks
+    from see_through_utils.torch_utils import seed_everything
 
     seed_everything(42)
     exec_listp = exec_list
@@ -474,8 +474,8 @@ def label_l2d_wsamsegs(exec_list, save_dir, extr_more, rank_to_worldsize):
 @click.option('--device', default='cuda')
 def gradcam_heatmap(image_file, savep, method, model_type, gen_threshold, eigen_smooth, aug_smooth, device):
 
-    from annotators.wdv3_tagger import apply_wdv3_tagger, get_tagger_and_transform
-    from annotators.gradcam import apply_gradcam
+    from see_through_annotators.wdv3_tagger import apply_wdv3_tagger, get_tagger_and_transform
+    from see_through_annotators.gradcam import apply_gradcam
     from pytorch_grad_cam.utils.image import show_cam_on_image
 
     if savep is None:
@@ -525,7 +525,7 @@ def infer_bizarre_tagger(exec_list, detected_instanec_only, rank_to_worldsize):
     apply pos estimator: bizarre tagger
     '''
 
-    from annotators.bizarre_tagger import apply_pos_estimator
+    from see_through_annotators.bizarre_tagger import apply_pos_estimator
     
     # model = LangSAM(sam_type="sam2.1_hiera_large")
     exec_list = load_exec_list(exec_list, rank_to_worldsize=rank_to_worldsize)
@@ -568,7 +568,7 @@ def infer_langsam(exec_list, box_threshold, text_threshold, detected_instanec_on
     import torch
     import gc
 
-    from annotators.lang_sam import LangSAM
+    from see_through_annotators.lang_sam import LangSAM
     
     model = LangSAM(sam_type="sam2.1_hiera_large")
     exec_list = load_exec_list(exec_list, rank_to_worldsize=rank_to_worldsize)
@@ -691,8 +691,8 @@ def infer_langsam(exec_list, box_threshold, text_threshold, detected_instanec_on
 @click.option('--rank_to_worldsize', default='', type=str)
 def parse_live2d(exec_list, method, model_type, gen_threshold, eigen_smooth, aug_smooth, save_gradcam_heatmap, device, tag_only, detected_instanec_only, rank_to_worldsize):
 
-    from annotators.wdv3_tagger import apply_wdv3_tagger, get_tagger_and_transform
-    from annotators.gradcam import apply_gradcam
+    from see_through_annotators.wdv3_tagger import apply_wdv3_tagger, get_tagger_and_transform
+    from see_through_annotators.gradcam import apply_gradcam
     from pytorch_grad_cam.utils.image import show_cam_on_image
 
     exec_list = load_exec_list(exec_list, rank_to_worldsize=rank_to_worldsize)
@@ -763,7 +763,7 @@ def parse_live2d(exec_list, method, model_type, gen_threshold, eigen_smooth, aug
 @click.option('--src_dir', default='workspace/tags_raw/bodyparts')
 @click.option('--savep', default='workspace/tagcluster_bodypart.json')
 def dump_body_tags(src_dir, savep):
-    from utils.io_utils import json2dict, dict2json
+    from see_through_utils.io_utils import json2dict, dict2json
 
     spliters = [',', '|']
     tag_set_cleaned = {}
@@ -798,7 +798,7 @@ def dump_body_tags(src_dir, savep):
 @click.option('--skip_exists', default=False, is_flag=True)
 def facedet(exec_list, twopass, rank_to_worldsize, skip_exists):
 
-    from annotators import anime_face_detector
+    from see_through_annotators import anime_face_detector
 
     if exec_list.endswith('.json') or exec_list.endswith('.json.gz'):
         exec_list = json2dict(exec_list)
@@ -991,9 +991,9 @@ def find_brow(lmodel: Live2DScrapModel, brow_id, face_xyxy=None):
 @click.option('--skip_exists', default=False, is_flag=True)
 def facedet_sam(exec_list, ckpt, mask_decoder, class_num, save_segs, save_preview, rank_to_worldsize, skip_exists):
 
-    from modules.semanticsam import SemanticSam, Sam
-    from utils.torch_utils import init_model_from_pretrained
-    from utils.cv import batch_save_masks
+    from see_through_modules.semanticsam import SemanticSam, Sam
+    from see_through_utils.torch_utils import init_model_from_pretrained
+    from see_through_utils.cv import batch_save_masks
     import torch
     
     if exec_list.endswith('.json') or exec_list.endswith('.json.gz'):
@@ -1408,7 +1408,7 @@ def facedet_sam(exec_list, ckpt, mask_decoder, class_num, save_segs, save_previe
 @click.option('--rank_to_worldsize', default='', type=str)
 def instance_segmentation(exec_list, rank_to_worldsize):
     
-    from annotators.animeinsseg.instance_segmentation import apply_instance_segmentation
+    from see_through_annotators.animeinsseg.instance_segmentation import apply_instance_segmentation
     
     exec_list = load_exec_list(exec_list, rank_to_worldsize=rank_to_worldsize)
 
@@ -1436,11 +1436,11 @@ def instance_segmentation(exec_list, rank_to_worldsize):
 @click.option('--rank_to_worldsize', default='', type=str)
 def sam_infer_l2d(exec_list, ckpt, rank_to_worldsize):
 
-    from live2d.scrap_model import animal_ear_detected, Drawable, VALID_BODY_PARTS_V1, VALID_BODY_PARTS_V2
-    from utils.cv import fgbg_hist_matching, quantize_image, random_crop, rle2mask, mask2rle, img_alpha_blending, resize_short_side_to, batch_save_masks, batch_load_masks
-    from utils.torch_utils import seed_everything, init_model_from_pretrained
-    from utils.visualize import visualize_segs_with_labels
-    from modules.semanticsam import SemanticSam, Sam
+    from see_through_live2d.scrap_model import animal_ear_detected, Drawable, VALID_BODY_PARTS_V1, VALID_BODY_PARTS_V2
+    from see_through_utils.cv import fgbg_hist_matching, quantize_image, random_crop, rle2mask, mask2rle, img_alpha_blending, resize_short_side_to, batch_save_masks, batch_load_masks
+    from see_through_utils.torch_utils import seed_everything, init_model_from_pretrained
+    from see_through_utils.visualize import visualize_segs_with_labels
+    from see_through_modules.semanticsam import SemanticSam, Sam
     import torch
 
 
@@ -1491,7 +1491,7 @@ def sam_infer_l2d(exec_list, ckpt, rank_to_worldsize):
 def infer_synsample_tags(exec_list, tags, rank_to_worldsize):
     
     # from annotators.animeinsseg.instance_segmentation import apply_instance_segmentation
-    from annotators.wdv3_tagger import apply_wdv3_tagger
+    from see_through_annotators.wdv3_tagger import apply_wdv3_tagger
     import os.path as osp
     tags = tags.split(',')
     

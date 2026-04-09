@@ -7,8 +7,8 @@ import cv2
 import numpy as np
 import pycocotools.mask as maskUtils
 
-from utils.io_utils import NumpyEncoder, json2dict, dict2json
-from utils.cv import mask2rle
+from see_through_utils.io_utils import NumpyEncoder, json2dict, dict2json
+from see_through_utils.cv import mask2rle
 
 # decorator to wrap original __init__
 # https://www.geeksforgeeks.org/creating-nested-dataclass-objects-in-python/

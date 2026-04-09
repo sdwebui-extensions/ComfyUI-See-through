@@ -31,7 +31,7 @@ class SegmentationThread(ThreadBase):
     def _run_manual_inference(self, proj: ProjSeg, inference_rect: list, inference_points: list = None):
 
         if pcfg.segmentation_model == SegModel.CartoonSeg:
-            from annotators.animeinsseg.instance_segmentation import apply_instance_segmentation
+            from see_through_annotators.animeinsseg.instance_segmentation import apply_instance_segmentation
             refine_method = 'refinenet_isnet' if pcfg.segmentation_refine else None
             instances = apply_instance_segmentation(
                 proj.img_array,
@@ -45,7 +45,7 @@ class SegmentationThread(ThreadBase):
                 bboxes = instances.bboxes
                 scores = instances.scores
         elif pcfg.segmentation_model == SegModel.SAM:
-            from annotators.lang_sam.models.sam import SAM
+            from see_through_annotators.lang_sam.models.sam import SAM
             sam = SAM()
             sam.build_model('sam2.1_hiera_large', device=pcfg.segmentation_device)
             xyxy = np.array(inference_rect)
@@ -88,7 +88,7 @@ class SegmentationThread(ThreadBase):
         for page_index, imgname in enumerate(proj.pages):
             imgp = osp.join(proj.directory, imgname)
             img = cv2.cvtColor(cv2.imread(imgp), cv2.COLOR_BGR2RGB)
-            from annotators.animeinsseg.instance_segmentation import apply_instance_segmentation
+            from see_through_annotators.animeinsseg.instance_segmentation import apply_instance_segmentation
             refine_method = 'refinenet_isnet' if pcfg.segmentation_refine else None
             instances = apply_instance_segmentation(
                 img,

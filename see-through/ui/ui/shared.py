@@ -5,7 +5,7 @@ import json
 import sys
 from functools import lru_cache
 
-from utils.visualize import get_color
+from see_through_utils.visualize import get_color
 
 PROGRAM_PATH = osp.abspath(osp.dirname(__file__))
 LOGGING_PATH = osp.join(PROGRAM_PATH, 'logs')

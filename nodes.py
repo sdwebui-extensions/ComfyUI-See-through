@@ -65,12 +65,12 @@ print("[SeeThrough] Importing see-through modules...", flush=True)
 import cv2
 from safetensors.torch import load_file
 
-from modules.layerdiffuse.diffusers_kdiffusion_sdxl import KDiffusionStableDiffusionXLPipeline
-from modules.layerdiffuse.layerdiff3d import UNetFrameConditionModel
-from modules.layerdiffuse.vae import TransparentVAE
-from modules.marigold import MarigoldDepthPipeline
-from utils.cv import center_square_pad_resize, img_alpha_blending, smart_resize
-from utils.torchcv import cluster_inpaint_part
+from see_through_modules.layerdiffuse.diffusers_kdiffusion_sdxl import KDiffusionStableDiffusionXLPipeline
+from see_through_modules.layerdiffuse.layerdiff3d import UNetFrameConditionModel
+from see_through_modules.layerdiffuse.vae import TransparentVAE
+from see_through_modules.marigold import MarigoldDepthPipeline
+from see_through_utils.cv import center_square_pad_resize, img_alpha_blending, smart_resize
+from see_through_utils.torchcv import cluster_inpaint_part
 
 print("[SeeThrough] All see-through imports OK", flush=True)
 
@@ -158,7 +158,12 @@ def _scan_model_dirs():
 
 def _resolve_model_path(model_name):
     local = os.path.join(SEETHROUGH_MODELS_DIR, model_name)
-    return local if os.path.isdir(local) else model_name
+    if os.path.isdir(local):
+        return local
+    cache_repo = os.path.join(folder_paths.cache_dir, 'huggingface', model_name)
+    if os.path.exists(cache_repo):
+        return cache_repo
+    return model_name
 
 
 def _label_lr_split(labels, stats, id1, id2):

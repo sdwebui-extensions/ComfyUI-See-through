@@ -13,7 +13,7 @@ from qtpy.QtCore import Signal, QSize, Qt
 from qtpy.QtGui import QGuiApplication, QContextMenuEvent, QIcon, QCloseEvent, QKeySequence
 import py7zr
 
-from utils.io_utils import get_all_segcls
+from see_through_utils.io_utils import get_all_segcls
 from . import shared_widget as SW
 from .canvas import Canvas, DrawableItem
 from .misc import parse_stylesheet, QKEY
@@ -188,7 +188,7 @@ class MainWindow(FramelessWindow):
             create_info_dialog(f'Previous page is not valid!')
             return
         
-        from live2d.scrap_model import match_drawable_to_tag_voting, get_tag_voting_from_lmodel
+        from see_through_live2d.scrap_model import match_drawable_to_tag_voting, get_tag_voting_from_lmodel
         pre_path = osp.join(self.proj.directory, prev_page)
         lmodel, dir2tag, did2tag = get_tag_voting_from_lmodel(pre_path, seg_type=pcfg.seg_type, parsing_src=pcfg.parsing_src)
         src_matching, rst_matching, (id_matched, dir_matched) = match_drawable_to_tag_voting(self.proj.l2dmodel, dir2tag, did2tag, check_area=True)

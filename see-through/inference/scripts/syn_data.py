@@ -12,11 +12,11 @@ from  tqdm import tqdm
 import click
 import cv2
 
-from utils.cv import mask2rle, rle2mask, mask_xyxy
-from utils.io_utils import load_exec_list, find_all_files_recursive, find_all_files_with_name, pil_ensure_rgb, imglist2imgrid, imread, imwrite, json2dict, save_tmp_img, dict2json
-from utils.sampler import NameSampler
-from utils.visualize import visualize_segs, visualize_segs_with_labels, visualize_pos_keypoints
-from live2d.scrap_model import Live2DScrapModel, VALID_BODY_PARTS_V1, VALID_BODY_PARTS_V2, compose_mask_from_drawables, init_drawable_visible_map, load_detected_character, load_pos_estimation
+from see_through_utils.cv import mask2rle, rle2mask, mask_xyxy
+from see_through_utils.io_utils import load_exec_list, find_all_files_recursive, find_all_files_with_name, pil_ensure_rgb, imglist2imgrid, imread, imwrite, json2dict, save_tmp_img, dict2json
+from see_through_utils.sampler import NameSampler
+from see_through_utils.visualize import visualize_segs, visualize_segs_with_labels, visualize_pos_keypoints
+from see_through_live2d.scrap_model import Live2DScrapModel, VALID_BODY_PARTS_V1, VALID_BODY_PARTS_V2, compose_mask_from_drawables, init_drawable_visible_map, load_detected_character, load_pos_estimation
 
 
 @click.group()
@@ -201,9 +201,9 @@ def render_face_samples(exec_list, bg_list, save_dir, rank_to_worldsize):
 
     TARGET_FRAME_SIZE = 2048
 
-    from utils.cv import fgbg_hist_matching, quantize_image, random_crop, img_bbox, img_alpha_blending, resize_short_side_to, batch_save_masks, batch_load_masks
-    from utils.torch_utils import seed_everything
-    from utils.visualize import FACE_LABEL2NAME
+    from see_through_utils.cv import fgbg_hist_matching, quantize_image, random_crop, img_bbox, img_alpha_blending, resize_short_side_to, batch_save_masks, batch_load_masks
+    from see_through_utils.torch_utils import seed_everything
+    from see_through_utils.visualize import FACE_LABEL2NAME
 
     def _compose_face_samples(lmodel: Live2DScrapModel):
         '''
@@ -410,9 +410,9 @@ def get_tgt_list(src_dir, savep):
 @click.option('--save_suffix', default='.png', type=str)
 def render_body_samples(exec_list, bg_list, mask_name, save_dir, rank_to_worldsize, save_suffix):
 
-    from live2d.scrap_model import animal_ear_detected, Drawable, ImageProcessor, compose_from_drawables, VALID_BODY_PARTS_V3
-    from utils.cv import fgbg_hist_matching, quantize_image, random_crop, rle2mask, mask2rle, img_alpha_blending, resize_short_side_to, batch_save_masks, batch_load_masks
-    from utils.torch_utils import seed_everything
+    from see_through_live2d.scrap_model import animal_ear_detected, Drawable, ImageProcessor, compose_from_drawables, VALID_BODY_PARTS_V3
+    from see_through_utils.cv import fgbg_hist_matching, quantize_image, random_crop, rle2mask, mask2rle, img_alpha_blending, resize_short_side_to, batch_save_masks, batch_load_masks
+    from see_through_utils.torch_utils import seed_everything
 
     seed_everything(42)
 

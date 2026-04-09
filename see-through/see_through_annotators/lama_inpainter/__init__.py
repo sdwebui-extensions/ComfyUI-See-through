@@ -5,6 +5,8 @@ import torch.nn as nn
 from torch import Tensor
 import numpy as np
 import cv2
+import os
+REGION = os.environ['REGION']
 
 from .ffc import FFC_BN_ACT
 
@@ -422,7 +424,7 @@ class LamaFourier:
 
 def load_lama_mpe(device, use_mpe=True, large_arch: bool = False) -> LamaFourier:
     model = LamaFourier(build_discriminator=False, use_mpe=use_mpe, large_arch=large_arch)
-    sd = torch.hub.load_state_dict_from_url("https://huggingface.co/dreMaz/AnimeMangaInpainting/resolve/main/lama_large_512px.ckpt", map_location = 'cpu')
+    sd = torch.hub.load_state_dict_from_url(f"https://eas-cache-{REGION}.oss-{REGION}-internal.aliyuncs.com/stable-diffusion-cache/models/lama/lama_large_512px.ckpt", map_location = 'cpu')
     model.generator.load_state_dict(sd['gen_state_dict'])
     if use_mpe:
         model.mpe.load_state_dict(sd['str_state_dict'])

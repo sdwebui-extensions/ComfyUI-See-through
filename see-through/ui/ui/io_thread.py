@@ -8,7 +8,7 @@ from qtpy.QtGui import QImage, QPixmap
 from PIL import Image
 
 from .logger import logger as LOGGER
-from utils.io_utils import imread, imwrite
+from see_through_utils.io_utils import imread, imwrite
 from .structures import Instance
 from .logger import create_error_dialog
 from .message import ProgressMessageBox

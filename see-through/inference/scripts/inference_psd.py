@@ -12,10 +12,10 @@ os.environ['OMP_NUM_THREADS'] = f"{default_n_threads}"
 import numpy as np
 from tqdm import tqdm
 
-from utils.io_utils import json2dict, dict2json, load_img_depth, save_psd, find_all_imgs
-from utils import inference_utils
-from utils.inference_utils import apply_layerdiff, apply_marigold, further_extr
-from utils.torch_utils import seed_everything
+from see_through_utils.io_utils import json2dict, dict2json, load_img_depth, save_psd, find_all_imgs
+from see_through_utils import inference_utils
+from see_through_utils.inference_utils import apply_layerdiff, apply_marigold, further_extr
+from see_through_utils.torch_utils import seed_everything
 
 if __name__ == '__main__':
 

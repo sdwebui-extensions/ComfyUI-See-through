@@ -4,12 +4,12 @@ import os.path as osp
 from typing import Tuple, Union, List, Dict
 
 from .logger import logger as LOGGER
-from utils.io_utils import find_all_imgs, load_image, NumpyEncoder, find_all_files_with_name
+from see_through_utils.io_utils import find_all_imgs, load_image, NumpyEncoder, find_all_files_with_name
 from .structures import Instance, load_instance_list, save_instance_list
 from .misc import ImgnameNotInProjectException, ProjectLoadFailureException, ProjectDirNotExistException, ProjectNotSupportedException
 from .ui_config import pcfg
 
-from live2d.scrap_model import Live2DScrapModel, fix_drawable_rgbs
+from see_through_live2d.scrap_model import Live2DScrapModel, fix_drawable_rgbs
 
 
 class ProjSeg:
@@ -95,7 +95,7 @@ class ProjSeg:
                 self.set_current_page_byidx(0)
 
     def load_from_txt(self, txt_path: str):
-        from utils.io_utils import load_exec_list
+        from see_through_utils.io_utils import load_exec_list
         flist = load_exec_list(txt_path)
         pages = {}
         self.directory = osp.dirname(txt_path)

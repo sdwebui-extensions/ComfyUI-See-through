@@ -12,7 +12,7 @@ import numpy as np
 
 from .util.transform import Resize, NormalizeImage, PrepareForNet
 from .dpt import DepthAnythingV2, DPTHead
-from utils.torch_utils import zero_module
+from see_through_utils.torch_utils import zero_module
 
 
 model_configs = {

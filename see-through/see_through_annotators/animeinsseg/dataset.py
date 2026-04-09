@@ -12,7 +12,7 @@ from numpy import random
 from mmdet.structures.bbox import autocast_box_type, BaseBoxes
 from mmengine.structures import InstanceData, PixelData
 from mmdet.structures import DetDataSample
-from utils.io_utils import bbox_overlap_xy
+from see_through_utils.io_utils import bbox_overlap_xy
 # from .logger import LOGGER
 
 @DATASETS.register_module()

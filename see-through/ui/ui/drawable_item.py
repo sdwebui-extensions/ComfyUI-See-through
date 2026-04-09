@@ -9,7 +9,7 @@ from qtpy.QtGui import QColor, QPolygon, QImage, QPainter, QPen, QPainterPath, Q
 
 from .cursor import rotateCursorList, resizeCursorList
 from .misc import ndarray2pixmap
-from live2d.scrap_model import Drawable, Live2DScrapModel
+from see_through_live2d.scrap_model import Drawable, Live2DScrapModel
 # from utils.visualize import get_color
 from .shared import get_cls_color
 

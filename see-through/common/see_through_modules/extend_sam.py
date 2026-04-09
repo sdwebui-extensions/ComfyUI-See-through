@@ -10,7 +10,7 @@ import torch
 import torch.nn.functional as F
 import torchvision.transforms.functional as tv_functional
 
-from utils.torch_utils import fix_params, img2tensor, tensor2img
+from see_through_utils.torch_utils import fix_params, img2tensor, tensor2img
 from .sam.build_sam import sam_model_registry, Sam
 from .sam.modeling.mask_decoder import MaskDecoder
 from .sam.modeling.prompt_encoder import PromptEncoder

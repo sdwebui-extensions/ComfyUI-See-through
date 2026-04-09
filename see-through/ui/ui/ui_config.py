@@ -4,7 +4,7 @@ import os.path as osp
 from . import shared
 from .structures import List, Dict, Config, field, nested_dataclass
 from .logger import logger as LOGGER
-from utils.io_utils import json_dump_nested_obj
+from see_through_utils.io_utils import json_dump_nested_obj
 # from .torch_utils import DEFAULT_DEVICE
 from enum import Enum
 

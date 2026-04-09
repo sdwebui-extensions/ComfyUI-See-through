@@ -9,7 +9,7 @@ import math
 
 from .pos_estimator import ModelFeatConcat, ModelFeatMatch
 from .bg_segmenter import CharacterBGSegmenter
-from utils.torch_utils import init_model_from_pretrained
+from see_through_utils.torch_utils import init_model_from_pretrained
 
 
 def resize_min_dry(x, s=512):
@@ -166,7 +166,7 @@ def cropbox_points(pts, from_corner, from_size, to_size):
 pos_estimators = {}
 
 
-from utils.visualize import coco_keypoints_ext
+from see_through_utils.visualize import coco_keypoints_ext
 
 
 @torch.inference_mode()

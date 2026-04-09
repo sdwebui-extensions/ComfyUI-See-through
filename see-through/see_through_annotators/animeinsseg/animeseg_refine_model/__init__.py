@@ -14,7 +14,7 @@ except:
     AnimeSegmentationCLS = torch.nn.Module
 
 from .isnet import ISNetDIS, ISNetGTEncoder
-from utils.torch_utils import init_model_from_pretrained
+from see_through_utils.torch_utils import init_model_from_pretrained
 
 
 def load_refinenet(refine_method = 'refinenet_isnet', device: str = 'cuda'):

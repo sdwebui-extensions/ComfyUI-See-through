@@ -82,8 +82,8 @@ def cluster_inpaint_part(depth, mask, img, inpaint='lama',**kwargs):
     extracted_parts = []
 
     if inpaint == 'lama':
-        from annotators.lama_inpainter import apply_inpaint
-        from utils.io_utils import save_tmp_img
+        from see_through_annotators.lama_inpainter import apply_inpaint
+        from see_through_utils.io_utils import save_tmp_img
         inpaint_method = apply_inpaint
     else:
         inpaint_method = lambda img, mask, *args, **kwargs: cv2.inpaint(img, mask, 3, cv2.INPAINT_NS)

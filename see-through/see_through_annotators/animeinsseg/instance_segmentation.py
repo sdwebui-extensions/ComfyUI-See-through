@@ -20,8 +20,8 @@ import mmcv, torch
 from torchvision.ops.boxes import box_iou
 import torch.nn.functional as F
 
-from utils.io_utils import find_all_imgs, dict2json
-from utils.cv import mask2rle
+from see_through_utils.io_utils import find_all_imgs, dict2json
+from see_through_utils.cv import mask2rle
 from .instances import CATEGORIES, AnimeInstances
 from .animeseg_refine_model import load_refinenet, get_mask
 from .rtmdet_inshead_custom import RTMDetInsSepBNHeadCustom
@@ -161,7 +161,7 @@ def read_imglst_from_txt(filep) -> List[str]:
     return lines
 
 
-from utils.torch_utils import init_model_from_pretrained
+from see_through_utils.torch_utils import init_model_from_pretrained
 
 
 def init_animeins_model(state_dict):

@@ -13,10 +13,10 @@ import cv2
 import sys
 sys.path.append(osp.dirname(osp.dirname(osp.abspath(__file__))))
 
-from utils.io_utils import load_exec_list, find_all_imgs
-from utils.cv import center_square_pad_resize, batch_load_masks
-from live2d.scrap_model import VALID_BODY_PARTS_V2
-from annotators.lama_inpainter import apply_inpaint
+from see_through_utils.io_utils import load_exec_list, find_all_imgs
+from see_through_utils.cv import center_square_pad_resize, batch_load_masks
+from see_through_live2d.scrap_model import VALID_BODY_PARTS_V2
+from see_through_annotators.lama_inpainter import apply_inpaint
 
 
 

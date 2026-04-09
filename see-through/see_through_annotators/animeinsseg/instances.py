@@ -4,7 +4,7 @@ from typing import List, Union, Tuple
 import torch
 import cv2
 
-from utils.visualize import get_color
+from see_through_utils.visualize import get_color
 
 CATEGORIES = [
     {"id": 0, "name": "object", "isthing": 1}

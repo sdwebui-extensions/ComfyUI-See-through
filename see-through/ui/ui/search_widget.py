@@ -8,7 +8,7 @@ import re
 from .ui_config import pcfg
 from .widget import Widget, ClickableLabel
 from .proj import ProjSeg
-from live2d.scrap_model import Live2DScrapModel
+from see_through_live2d.scrap_model import Live2DScrapModel
 # from .textitem import TextBlkItem
 # from .textedit_area import TransPairWidget, SourceTextEdit, TransTextEdit
 
